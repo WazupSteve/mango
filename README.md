@@ -3,6 +3,10 @@
 
 Mango is a simple Variational Autoencoder (VAE) project to generate anime-style face images. It uses PyTorch for building and training the model.
 
+## Demo 
+
+![Generated Anime Faces](generated_anime_faces_best.png)
+
 ## Project Structure
 ```
 MANGO
@@ -45,3 +49,6 @@ MANGO
 
 ## License
 This project is licensed under the MIT License.
+
+
+
