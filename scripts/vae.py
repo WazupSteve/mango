@@ -12,22 +12,22 @@ import numpy as np
 # --- Configuration ---
 LATENT_DIM = 256
 BATCH_SIZE = 64
-NUM_EPOCHS = 50  # Increased for better convergence
+NUM_EPOCHS = 50  #converges better
 IMAGE_SIZE = 64
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MODEL_PATH = 'models/anime_vae_best.pth'
 DATA_DIR = 'anime_faces/images'
 SAMPLES_DIR = 'samples'
 GENERATED_IMAGE_PATH = 'generated_anime_faces_best.png'
-LEARNING_RATE = 1e-4  # Adjusted learning rate
-BETA = 1.0 # Adjusted beta for stronger KL Divergence
+LEARNING_RATE = 1e-4 
+BETA = 1.0 #stronger KL divergence ( can vary outputs !)
 SCHEDULER_STEP_SIZE = 15
 SCHEDULER_GAMMA = 0.7
 
 # --- Reproducibility ---
 torch.manual_seed(42)
 np.random.seed(42)
-torch.backends.cudnn.benchmark = True  # Enables cuDNN benchmark mode
+torch.backends.cudnn.benchmark = True
 
 # --- Dataset ---
 class AnimeDataset(Dataset):
@@ -150,9 +150,10 @@ class VAETrainer:
     def compute_loss(self, recon_x, x, mu, logvar):
         recon_loss = nn.MSELoss()(recon_x, x)
         kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        kl_div = kl_div / x.numel()  # Average over batch and spatial dimensions
+        kl_div = kl_div / x.numel()  #Average over batch and spatial dimensions
         return recon_loss + self.beta * kl_div
 
+    #training loop
     def train_epoch(self, train_loader):
         self.model.train()
         total_loss = 0
@@ -171,12 +172,12 @@ class VAETrainer:
 
 # --- Main Function ---
 def main():
-    # Create directories
+    #Create directories
     os.makedirs(SAMPLES_DIR, exist_ok=True)
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    # Transforms
+    #Transforms and DataLoader
     transform = transforms.Compose([
         transforms.Resize(IMAGE_SIZE),
         transforms.RandomHorizontalFlip(),
@@ -186,11 +187,9 @@ def main():
         transforms.ToTensor(),
     ])
 
-    # Dataset and Dataloader
     dataset = AnimeDataset(DATA_DIR, transform=transform)
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True)
 
-    # Model
     if os.path.exists(MODEL_PATH):
         print("Loading saved model...")
         model = AnimeVAE.load_model(MODEL_PATH, DEVICE)
@@ -199,22 +198,19 @@ def main():
         model = AnimeVAE(LATENT_DIM).to(DEVICE)
         trainer = VAETrainer(model, DEVICE, LEARNING_RATE, BETA)
 
-        # Training loop
         for epoch in range(NUM_EPOCHS):
             print(f"Epoch {epoch+1}/{NUM_EPOCHS}")
             avg_loss = trainer.train_epoch(train_loader)
             print(f'Epoch {epoch+1} Average Loss: {avg_loss:.4f}')
 
-            # Generate and save samples
+            #generate and save samples
             with torch.no_grad():
                 model.eval()
                 samples = model.generate(16, DEVICE)
                 save_image(samples, os.path.join(SAMPLES_DIR, f'epoch_{epoch+1}.png'), nrow=4, normalize=True)
 
-        # Save the trained model
         model.save_model(MODEL_PATH)
 
-    # Generate final samples
     print("Generating final samples...")
     model.eval()
     diverse_samples = model.generate(64, DEVICE)
