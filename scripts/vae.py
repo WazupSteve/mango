@@ -12,7 +12,7 @@ import numpy as np
 # --- Configuration ---
 LATENT_DIM = 256
 BATCH_SIZE = 64
-NUM_EPOCHS = 50  #converges better
+NUM_EPOCHS = 50  # converges better
 IMAGE_SIZE = 64
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MODEL_PATH = 'models/anime_vae_best.pth'
